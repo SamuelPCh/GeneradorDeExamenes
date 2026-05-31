@@ -1,8 +1,11 @@
 import streamlit as st
 from openai import OpenAI
 from agentes import ejecutar_agentes
+from rag import crear_vector_store, buscar_contexto
 import opik
 from opik import track
+
+
 
 opik.configure(use_local=False)
 
@@ -265,6 +268,11 @@ if "Cargar" in opcion_rag:
             except Exception as e:
                 st.error(f"Error al leer el PDF: {e}")
 
+        if documento_texto:
+            with st.spinner("Procesando documento con RAG..."):
+                crear_vector_store(documento_texto, tema if tema else "documento")
+            st.success("✅ Documento indexado en vector store")
+
 st.markdown('<hr class="divider">', unsafe_allow_html=True)
 
 # ── Botón principal ─────────────────────────────────────────────
@@ -282,10 +290,14 @@ if st.button("Generar exámenes en LaTeX →"):
             )
 
             @track
-            def generar_y_registrar(tema, nivel, num_preguntas, modelo):
-                return ejecutar_agentes(tema, nivel, num_preguntas)
+            def generar_y_registrar(tema, nivel, num_preguntas, modelo, contexto_rag=""):
+                return ejecutar_agentes(tema, nivel, num_preguntas, contexto_rag)
 
-            raw = generar_y_registrar(tema, nivel, num_preguntas, modelo_id)
+            contexto_rag = ""
+            if documento_texto and tema:
+                contexto_rag = buscar_contexto(tema, tema, k=3)
+
+            raw = generar_y_registrar(tema, nivel, num_preguntas, modelo_id, contexto_rag)
             raw = raw.replace("```", "").strip()
 
             bloques = parsear_respuesta(raw)

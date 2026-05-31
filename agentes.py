@@ -21,9 +21,10 @@ agente_revisor = Agent(
     verbose=True
 )
 
-def ejecutar_agentes(tema, nivel, num_preguntas):
+def ejecutar_agentes(tema, nivel, num_preguntas, contexto_rag=""):
+    contexto_texto = f"\nUsa este material como referencia:\n{contexto_rag}\n" if contexto_rag else ""
     tarea_generacion = Task(
-        description=f"""Genera exactamente {num_preguntas} preguntas teóricas y conceptuales
+        description=f"""{contexto_texto}Genera exactamente {num_preguntas} preguntas teóricas y conceptuales
         de selección múltiple de nivel {nivel} sobre el tema: {tema}.
         NO uses LaTeX ni símbolos matemáticos. Solo texto plano.
         
